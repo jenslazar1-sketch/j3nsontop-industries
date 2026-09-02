@@ -32,11 +32,16 @@ shared `core.js` routes to it only when the iOS host is present (`window.webkit
 
 ## Secure context
 
-A `file://` page is not a secure context, so `crypto.subtle` — every hash and
-certificate fingerprint in the app — would be missing, exactly as on Android.
-The fix is the same: the host runs a tiny **GCDWebServer bound to
-`127.0.0.1`** and loads `http://localhost:<port>/`. Loopback is a secure
-context in WebKit, so WebCrypto is available and no byte ever leaves the device.
+`crypto.subtle` — every hash and certificate fingerprint in the app — only
+exists in a secure context. Unlike Chromium, **WebKit treats a `file://` page as
+a secure context**, so `loadFileURL` is enough: WebCrypto is available with no
+server, no dependency, and no open port, and no byte ever leaves the device.
+(The Android build can't rely on this — Chromium's WebView does not trust
+`file://` — so it serves over a loopback origin instead.)
+
+Files opened from other apps are handed to the page by injecting their bytes
+into `window.__j3ios_files`; `core.js` reads them there (a guarded iOS branch in
+`fetchHanded`) instead of fetching `/__file/<id>`.
 
 ## Building (on a Mac)
 

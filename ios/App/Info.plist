@@ -64,12 +64,8 @@
         </dict>
     </array>
 
-    <!-- The app talks to nothing but its own loopback server. This is the ATS
-         exception for http://localhost, which iOS otherwise blocks. -->
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsLocalNetworking</key>
-        <true/>
-    </dict>
+    <!-- No ATS exception needed: the app loads its bundled web layer over
+         file:// and makes no network requests of its own; real links open in
+         Safari. -->
 </dict>
 </plist>
