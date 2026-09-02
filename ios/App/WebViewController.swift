@@ -5,30 +5,23 @@
 // the toolbox, APK Lab, the tamper detector — is standard web code and runs
 // unchanged. Only the thin native surface differs per platform.
 //
-// Why a local loopback server instead of loadFileURL: a file:// page is not a
-// secure context, so crypto.subtle — every SHA hash and certificate
-// fingerprint in the app — does not exist there. http://localhost IS a secure
-// context (WebKit treats loopback as trustworthy), so serving the bundle over
-// GCDWebServer on 127.0.0.1 hands the page real WebCrypto while keeping every
-// byte on-device. Same problem, same fix as the Android LocalServer.
+// No local web server: WebKit treats a file:// page as a secure context, so
+// crypto.subtle — every SHA hash and certificate fingerprint in the app — is
+// available straight from loadFileURL, with no dependency and no open port.
+// (This is a WebKit-specific guarantee; Chromium does not make it, which is why
+// the Android build serves over a loopback origin instead.)
 //
-// This is a scaffold: it is written to be correct, but it has never been
-// compiled here (no Mac). Build it on macOS — see ios/README.md.
+// Files opened from other apps are handed to the page by injecting their bytes
+// into window.__j3ios_files and calling J3.incoming — core.js reads them there
+// instead of fetching /__file/<id>, so no server is needed for that either.
 
 import UIKit
 import WebKit
-import GCDWebServer
 import UniformTypeIdentifiers
 
 final class WebViewController: UIViewController, WKScriptMessageHandler, WKUIDelegate, WKNavigationDelegate {
 
     private var webView: WKWebView!
-    private let server = GCDWebServer()
-
-    // Files handed in from other apps, served back to the page at /__file/<id>
-    // exactly like the Android LocalServer, so a large APK never crosses the JS
-    // bridge as base64.
-    private var handed: [String: URL] = [:]
     private var seq = 0
 
     // Android-only views have no iOS equivalent and are hidden by an injected
@@ -67,46 +60,20 @@ final class WebViewController: UIViewController, WKScriptMessageHandler, WKUIDel
         #endif
         view.addSubview(webView)
 
-        startServerAndLoad()
+        loadLocalBundle()
     }
 
-    // MARK: - Local secure origin
+    // MARK: - Load the bundled app (file:// is a secure context in WebKit)
 
-    private func startServerAndLoad() {
-        guard let www = Bundle.main.path(forResource: "www", ofType: nil) else {
+    private func loadLocalBundle() {
+        guard let wwwPath = Bundle.main.path(forResource: "www", ofType: nil) else {
             loadFailure("Bundled web assets (www) are missing from the app.")
             return
         }
-        server.addGETHandler(forBasePath: "/",
-                             directoryPath: www,
-                             indexFilename: "index.html",
-                             cacheAge: 0,
-                             allowRangeRequests: true)
-        // Added after the base handler so it wins (GCDWebServer matches LIFO).
-        server.addHandler(forMethod: "GET", pathRegex: "^/__file/.+$",
-                          request: GCDWebServerRequest.self) { [weak self] req in
-            let id = (req.path as NSString).lastPathComponent
-            guard let self = self, let url = self.handed[id],
-                  let data = try? Data(contentsOf: url) else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
-            return GCDWebServerDataResponse(data: data, contentType: "application/octet-stream")
-        }
-        do {
-            // Bind to loopback so the origin is http://localhost — a secure
-            // context — and never reachable from the network.
-            try server.start(options: [
-                GCDWebServerOption_BindToLocalhost: true,
-                GCDWebServerOption_Port: 0                 // any free port
-            ])
-        } catch {
-            loadFailure("Could not start the local server: \(error.localizedDescription)")
-            return
-        }
-        let port = server.port
-        if let url = URL(string: "http://localhost:\(port)/index.html") {
-            webView.load(URLRequest(url: url))
-        }
+        let wwwURL = URL(fileURLWithPath: wwwPath, isDirectory: true)
+        let index = wwwURL.appendingPathComponent("index.html")
+        // allowingReadAccessTo the whole www dir lets the page pull its js/css/assets.
+        webView.loadFileURL(index, allowingReadAccessTo: wwwURL)
     }
 
     private func loadFailure(_ msg: String) {
@@ -154,19 +121,24 @@ final class WebViewController: UIViewController, WKScriptMessageHandler, WKUIDel
 
     // MARK: - Files opened from other apps
 
-    /// Copies a shared file in, registers it under /__file/<id>, and hands it to
-    /// the web layer via J3.incoming — the same path MainActivity uses on Android.
+    /// Copies a shared file in and hands its bytes to the web layer by injecting
+    /// them into window.__j3ios_files, then calling J3.incoming — the same entry
+    /// point MainActivity uses on Android, just without a server in between.
     func receiveSharedFile(_ url: URL) {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         guard let data = try? Data(contentsOf: url) else { return }
         seq += 1
         let id = "f\(seq)"
-        let tmp = FileManager.default.temporaryDirectory
-            .appendingPathComponent(id + "-" + url.lastPathComponent)
-        do { try data.write(to: tmp) } catch { return }
-        handed[id] = tmp
-        let js = "window.J3 && J3.incoming && J3.incoming({id:'\(id)',name:\(jsString(url.lastPathComponent)),size:\(data.count)})"
+        let b64 = data.base64EncodedString()
+        let name = jsString(url.lastPathComponent)
+        let js = """
+        (function(){window.__j3ios_files=window.__j3ios_files||{};
+        var b=atob('\(b64)');var u=new Uint8Array(b.length);
+        for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+        window.__j3ios_files['\(id)']=u;
+        window.J3&&J3.incoming&&J3.incoming({id:'\(id)',name:\(name),size:\(data.count)});})();
+        """
         // Give the page a beat if it is still booting.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             self.webView.evaluateJavaScript(js, completionHandler: nil)
@@ -198,7 +170,6 @@ final class WebViewController: UIViewController, WKScriptMessageHandler, WKUIDel
                  decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let url = navigationAction.request.url,
-           let host = url.host, host != "localhost",
            url.scheme == "http" || url.scheme == "https" {
             UIApplication.shared.open(url)                 // external link -> Safari
             decisionHandler(.cancel)
@@ -206,6 +177,4 @@ final class WebViewController: UIViewController, WKScriptMessageHandler, WKUIDel
         }
         decisionHandler(.allow)
     }
-
-    deinit { server.stop() }
 }

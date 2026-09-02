@@ -209,6 +209,11 @@ var J3 = (function () {
 
   /** Pulls a handed-over file out of LocalServer as bytes. */
   function fetchHanded(id) {
+    // iOS has no local server; the host injects shared-file bytes directly.
+    if (IOS) {
+      var m = window.__j3ios_files;
+      if (m && m[id]) return Promise.resolve(m[id]);
+    }
     return fetch('/__file/' + encodeURIComponent(id))
       .then(function (r) {
         if (!r.ok) throw new Error('Could not read that file (' + r.status + ')');

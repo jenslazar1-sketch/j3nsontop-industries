@@ -17,12 +17,8 @@ options:
     iOS: "14.0"
   createIntermediateGroups: true
 
-packages:
-  # Serves the bundled assets over http://localhost so the page is a secure
-  # context and crypto.subtle (all the hashing / cert work) exists.
-  GCDWebServer:
-    url: https://github.com/swisspol/GCDWebServer
-    from: "3.5.4"
+# No Swift packages: the app loads its bundled web layer over file://, which is
+# a secure context in WebKit, so crypto.subtle works with no server dependency.
 
 targets:
   J3NSONTOP:
@@ -33,8 +29,6 @@ targets:
       - path: ../app/src/main/assets
         name: www
         type: folder          # blue folder reference -> bundled as-is under www/
-    dependencies:
-      - package: GCDWebServer
     info:
       path: App/Info.plist
     settings:
