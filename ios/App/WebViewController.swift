@@ -66,14 +66,32 @@ final class WebViewController: UIViewController, WKScriptMessageHandler, WKUIDel
     // MARK: - Load the bundled app (file:// is a secure context in WebKit)
 
     private func loadLocalBundle() {
-        guard let wwwPath = Bundle.main.path(forResource: "www", ofType: nil) else {
-            loadFailure("Bundled web assets (www) are missing from the app.")
+        let fm = FileManager.default
+
+        // A folder reference keeps its on-disk directory name in the bundle, so
+        // the web layer may sit under "www" or "assets". Try the likely names,
+        // then fall back to locating index.html anywhere under the resources.
+        var indexURL: URL?
+        for name in ["www", "assets"] {
+            if let dir = Bundle.main.url(forResource: name, withExtension: nil) {
+                let idx = dir.appendingPathComponent("index.html")
+                if fm.fileExists(atPath: idx.path) { indexURL = idx; break }
+            }
+        }
+        if indexURL == nil, let res = Bundle.main.resourceURL,
+           let walker = fm.enumerator(at: res, includingPropertiesForKeys: nil) {
+            for case let u as URL in walker where u.lastPathComponent == "index.html" {
+                indexURL = u; break
+            }
+        }
+
+        guard let index = indexURL else {
+            loadFailure("Bundled web assets are missing from the app.")
             return
         }
-        let wwwURL = URL(fileURLWithPath: wwwPath, isDirectory: true)
-        let index = wwwURL.appendingPathComponent("index.html")
-        // allowingReadAccessTo the whole www dir lets the page pull its js/css/assets.
-        webView.loadFileURL(index, allowingReadAccessTo: wwwURL)
+        // Read access to the folder holding index.html lets the page pull its
+        // js/css/assets by their relative paths (the folder keeps its structure).
+        webView.loadFileURL(index, allowingReadAccessTo: index.deletingLastPathComponent())
     }
 
     private func loadFailure(_ msg: String) {

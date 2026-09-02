@@ -28,7 +28,9 @@ targets:
       - path: App
       - path: ../app/src/main/assets
         name: www
-        type: folder          # blue folder reference -> bundled as-is under www/
+        type: folder          # folder reference -> bundled as-is, structure kept
+        buildPhase: resources # force it into Copy Bundle Resources (else it is
+                              # generated but never copied, and the app ships empty)
     info:
       path: App/Info.plist
     settings:

@@ -53,6 +53,21 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
 
+      - name: Verify the web layer is bundled
+        working-directory: ios
+        run: |
+          APP=$(ls -d build/J3NSONTOP.xcarchive/Products/Applications/*.app | head -1)
+          echo "== app bundle top level =="
+          ls -la "$APP"
+          echo "== locate index.html in the bundle =="
+          IDX=$(find "$APP" -name index.html | head -1)
+          if [ -z "$IDX" ]; then
+            echo "::error::index.html is NOT in the app bundle — the web layer did not ship."
+            exit 1
+          fi
+          echo "index.html -> ${IDX#$APP/}"
+          echo "js engines bundled: $(find "$(dirname "$IDX")/js" -name '*.js' | wc -l)"
+
       - name: Package the .ipa
         working-directory: ios
         run: |
