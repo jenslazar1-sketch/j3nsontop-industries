@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      No INTERNET permission, on purpose.
+
+      Every byte of this app ships inside the APK and the toolbox runs entirely
+      on-device, so the WebView has nothing to fetch. Real links are handed to
+      the system browser through an intent, which needs no permission at all.
+      The result: an app that literally cannot phone home.
+    -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="false"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        android:theme="@style/Theme.J3NSONTOP">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode|density|fontScale"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.J3NSONTOP">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- "Open with J3NSONTOP" on an APK / archive: goes straight to APK LAB. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:mimeType="application/vnd.android.package-archive" />
+                <data android:scheme="file"    android:mimeType="application/vnd.android.package-archive" />
+                <data android:scheme="content" android:mimeType="application/zip" />
+                <data android:scheme="content" android:mimeType="application/java-archive" />
+            </intent-filter>
+
+            <!-- Share sheet target, so any file manager can throw a build at us. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/vnd.android.package-archive" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

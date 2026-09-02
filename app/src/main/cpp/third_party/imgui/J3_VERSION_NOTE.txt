@@ -1,0 +1,4 @@
+Dear ImGui vendored at v1.92.2b (MIT). The project was originally built against
+the 1.93.0 WIP head; 1.93.0 was never tagged, and 1.92.2b is the closest tagged
+release with the same API (style.FontScaleMain present). If a native rebuild hits
+an API mismatch, bump to the latest 1.9x from https://github.com/ocornut/imgui .

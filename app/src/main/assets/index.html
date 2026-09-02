@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>J3NSONTOP INDUSTRIES</title>
+<meta name="description" content="J3NSONTOP INDUSTRIES — fun destruction division. Every site, tool and build in one place, plus an offline APK lab.">
+<meta name="theme-color" content="#05070a">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div id="bg"><div id="bgimg"></div></div>
+<div id="scan"></div><div id="flick"></div>
+<div id="wipe"></div>
+
+<button id="skip">skip ▸</button>
+
+<div id="intro">
+  <div id="boot"></div>
+  <div id="word" aria-label="J3NSONTOP"></div>
+  <div id="ind">INDUSTRIES</div>
+  <div id="tag"></div>
+</div>
+
+<div id="app">
+  <div class="top"><div class="top-in">
+    <a class="mark" href="#" id="brand"><span class="dot"></span>J3NSONTOP <b>INDUSTRIES</b></a>
+    <span class="spacer"></span>
+    <button class="tbtn" id="replay" title="Replay the intro">Intro</button>
+  </div></div>
+
+  <div class="page">
+    <section class="view on" id="v-arsenal"></section>
+    <section class="view"    id="v-toolbox"></section>
+    <section class="view"    id="v-apklab"></section>
+    <section class="view"    id="v-scanner"></section>
+    <section class="view"    id="v-integrity"></section>
+    <section class="view"    id="v-intel"></section>
+
+    <div class="foot">
+      J3NSONTOP <b>INDUSTRIES</b> · FUN DESTRUCTION DIVISION<br>
+      We build the tools. The bad modders find out.
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button data-view="arsenal" class="on"><span class="ic">▚</span>Arsenal</button>
+    <button data-view="toolbox"><span class="ic">⚒</span>Toolbox</button>
+    <button data-view="apklab"><span class="ic">⬢</span>APK Lab</button>
+    <button data-view="scanner"><span class="ic">◈</span>Scanner</button>
+    <button data-view="integrity"><span class="ic">⚭</span>Integrity</button>
+    <button data-view="intel"><span class="ic">▤</span>Intel</button>
+  </nav>
+</div>
+
+<div id="toast"></div>
+
+<!-- engines first: the views call straight into them -->
+<script src="js/binary.js"></script>
+<script src="js/attrs.js"></script>
+<script src="js/zip.js"></script>
+<script src="js/axml.js"></script>
+<script src="js/dex.js"></script>
+<script src="js/smali.js"></script>
+<script src="js/cert.js"></script>
+<script src="js/elf.js"></script>
+<script src="js/vrscan.js"></script>
+<script src="js/tamper.js"></script>
+
+<script src="js/core.js"></script>
+<script src="js/arsenal.js"></script>
+<script src="js/toolbox.js"></script>
+<script src="js/apklab.js"></script>
+<script src="js/scanner.js"></script>
+<script src="js/integrity.js"></script>
+<script src="js/intel.js"></script>
+<script>J3.boot();</script>
+</body>
+</html>

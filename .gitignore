@@ -1,0 +1,19 @@
+# --- build output (regenerated; artifacts live on Drive/catbox) ---
+build/
+app/build/
+.gradle/
+*.apk
+*.aab
+*.ipa
+*.xcarchive
+ios/*.xcodeproj/
+DerivedData/
+
+# --- machine-specific ---
+local.properties
+.idea/
+*.iml
+.DS_Store
+
+# --- node (rapidnative) ---
+node_modules/

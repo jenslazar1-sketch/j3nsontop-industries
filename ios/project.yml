@@ -1,0 +1,51 @@
+# J3NSONTOP INDUSTRIES - iOS project (XcodeGen)
+#
+# Generates J3NSONTOP.xcodeproj from this file, so the project is diffable text
+# instead of an opaque pbxproj. On a Mac:
+#
+#   brew install xcodegen
+#   cd ios && xcodegen generate
+#   open J3NSONTOP.xcodeproj      # then Product > Archive -> .ipa
+#
+# The web layer is shared verbatim with Android: `../app/src/main/assets` is
+# bundled as `www`, so there is exactly one copy of the toolbox / APK Lab /
+# tamper engines in the whole repo.
+name: J3NSONTOP
+options:
+  bundleIdPrefix: com.j3nsontop
+  deploymentTarget:
+    iOS: "14.0"
+  createIntermediateGroups: true
+
+packages:
+  # Serves the bundled assets over http://localhost so the page is a secure
+  # context and crypto.subtle (all the hashing / cert work) exists.
+  GCDWebServer:
+    url: https://github.com/swisspol/GCDWebServer
+    from: "3.5.4"
+
+targets:
+  J3NSONTOP:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: ../app/src/main/assets
+        name: www
+        type: folder          # blue folder reference -> bundled as-is under www/
+    dependencies:
+      - package: GCDWebServer
+    info:
+      path: App/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.j3nsontop.industries
+        MARKETING_VERSION: "3.0"
+        CURRENT_PROJECT_VERSION: "3"
+        TARGETED_DEVICE_FAMILY: "1,2"     # iPhone + iPad
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: NO
+        # Fill these in with your Apple Developer team to sign for a device / the
+        # App Store. Left blank so it opens and builds for the Simulator as-is.
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic

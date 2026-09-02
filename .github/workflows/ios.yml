@@ -1,0 +1,80 @@
+name: Build iOS IPA
+
+# Compiles the ios/ scaffold into an installable .ipa on a cloud Mac.
+# Run it: push this repo to GitHub, open the Actions tab, and this runs on
+# every push that touches the app — or hit "Run workflow" manually. When it
+# finishes, the .ipa is under the run's "Artifacts" section.
+#
+# The default build is UNSIGNED, so it needs no Apple account. Install the
+# unsigned .ipa with AltStore / SideStore / Sideloadly, which re-sign it with
+# your own free Apple ID on the device. For a directly-signed build, see the
+# commented "signed" notes at the bottom.
+
+on:
+  workflow_dispatch:          # the "Run workflow" button
+  push:
+    paths:
+      - 'ios/**'
+      - 'app/src/main/assets/**'
+      - '.github/workflows/ios.yml'
+
+jobs:
+  build:
+    runs-on: macos-14         # a real Mac; macos-15 also works
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        working-directory: ios
+        run: xcodegen generate      # project.yml -> J3NSONTOP.xcodeproj
+
+      - name: Archive (unsigned)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project J3NSONTOP.xcodeproj \
+            -scheme J3NSONTOP \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/J3NSONTOP.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | xcpretty || true
+
+      - name: Package the .ipa
+        working-directory: ios
+        run: |
+          APP=$(ls -d build/J3NSONTOP.xcarchive/Products/Applications/*.app | head -1)
+          if [ -z "$APP" ]; then echo "No .app was produced — build failed above."; exit 1; fi
+          rm -rf build/Payload && mkdir -p build/Payload
+          cp -R "$APP" build/Payload/
+          ( cd build && zip -qry J3NSONTOP-unsigned.ipa Payload )
+          ls -la build/*.ipa
+
+      - name: Upload the .ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: J3NSONTOP-ipa
+          path: ios/build/*.ipa
+          if-no-files-found: error
+
+# ---------------------------------------------------------------------------
+# SIGNED build (optional, needs a paid or free Apple Developer account):
+#   1. In the repo Settings > Secrets, add your signing cert (.p12, base64),
+#      its password, and a provisioning profile (.mobileprovision, base64).
+#   2. Import them on the runner with `security import` + install the profile,
+#      then drop the CODE_SIGNING_ALLOWED=NO flags from the Archive step and
+#      set DEVELOPMENT_TEAM / PROVISIONING_PROFILE_SPECIFIER.
+#   3. Replace the "Package the .ipa" step with:
+#         xcodebuild -exportArchive \
+#           -archivePath build/J3NSONTOP.xcarchive \
+#           -exportPath build \
+#           -exportOptionsPlist ExportOptions.plist
+#      using the ios/ExportOptions.plist template included in this repo.
+# ---------------------------------------------------------------------------

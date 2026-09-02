@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "J3NSONTOP INDUSTRIES",
+    "slug": "j3nsontop-industries",
+    "version": "3.0.0",
+    "orientation": "portrait",
+    "scheme": "j3nsontop",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#05070a",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.j3nsontop.industries"
+    },
+    "android": {
+      "package": "com.j3nsontop.industries",
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

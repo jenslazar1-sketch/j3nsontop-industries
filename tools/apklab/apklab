@@ -1,0 +1,3 @@
+#!/bin/sh
+# J3NSONTOP APK LAB - macOS / Linux launcher
+exec node "$(dirname "$0")/apklab.js" "$@"

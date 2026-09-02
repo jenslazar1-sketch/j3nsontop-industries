@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Only used by the SIGNED build path (see .github/workflows/ios.yml).
+     Fill in teamID with your Apple Developer team. method=development for a
+     device build you install yourself; app-store for TestFlight/the Store. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>development</string>
+    <key>teamID</key>
+    <string>YOUR_TEAM_ID</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
+    <key>compileBitcode</key>
+    <false/>
+    <key>stripSwiftSymbols</key>
+    <true/>
+</dict>
+</plist>

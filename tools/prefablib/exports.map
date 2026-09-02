@@ -1,0 +1,10 @@
+/* Only the J3 public API is exported; every ImGui internal stays local so the
+ * drop-in library has a tiny, clean symbol table and cannot clash with a host
+ * that links its own ImGui. */
+{
+  global:
+    j3lib_*;
+    j3_prefabs_*;
+  local:
+    *;
+};

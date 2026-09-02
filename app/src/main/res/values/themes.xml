@@ -1,0 +1,15 @@
+<resources>
+    <!--
+      Framework Material, not AppCompat: v2 dropped androidx entirely, so there
+      is no AppCompat theme to inherit from any more.
+    -->
+    <style name="Theme.J3NSONTOP" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ink</item>
+        <item name="android:colorBackground">@color/ink</item>
+        <item name="android:statusBarColor">@color/ink</item>
+        <item name="android:navigationBarColor">@color/ink</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:colorAccent">@color/acid</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

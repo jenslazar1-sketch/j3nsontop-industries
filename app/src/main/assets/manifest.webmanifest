@@ -1,0 +1,16 @@
+{
+  "name": "J3NSONTOP INDUSTRIES",
+  "short_name": "J3NSONTOP",
+  "description": "Fun destruction division. Every site and build in one place, 16 offline tools and an on-device APK lab.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05070a",
+  "theme_color": "#05070a",
+  "categories": ["utilities", "productivity", "developer"],
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

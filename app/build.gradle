@@ -1,0 +1,90 @@
+plugins { id 'com.android.application' }
+
+/*  Signing.
+ *  By default the release APK is signed with the standard Android debug key so
+ *  it installs on any phone straight away (side-loading, Drive drops, etc).
+ *  For a Play Store upload, pass your own key instead - either on the command
+ *  line or in gradle.properties:
+ *
+ *    gradlew assembleRelease -PJ3_KEYSTORE=C:/keys/j3.jks -PJ3_KEYSTORE_PASS=... \
+ *                            -PJ3_KEY_ALIAS=j3 -PJ3_KEY_PASS=...
+ */
+def ksPath  = project.findProperty('J3_KEYSTORE')      ?: "${System.properties['user.home']}/.android/debug.keystore"
+def ksPass  = project.findProperty('J3_KEYSTORE_PASS') ?: 'android'
+def ksAlias = project.findProperty('J3_KEY_ALIAS')     ?: 'androiddebugkey'
+def ksKey   = project.findProperty('J3_KEY_PASS')      ?: 'android'
+
+android {
+    namespace 'com.j3nsontop.industries'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.j3nsontop.industries"
+        minSdk 24
+        targetSdk 34
+        versionCode 3
+        versionName "3.0"
+        resourceConfigurations += ['en']
+    }
+
+    signingConfigs {
+        drop {
+            storeFile file(ksPath)
+            storePassword ksPass
+            keyAlias ksAlias
+            keyPassword ksKey
+            // v1 for old devices, v2/v3 for everything modern
+            enableV1Signing true
+            enableV2Signing true
+            enableV3Signing true
+        }
+    }
+
+    buildTypes {
+        debug {
+            versionNameSuffix "-debug"
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.drop
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    // The assets are the app. Compressing index/js/css again inside the APK
+    // costs startup time for ~40 KB, so leave the small text files stored.
+    androidResources {
+        noCompress 'jpg', 'png'
+    }
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/*.version', 'META-INF/**/*.kotlin_module', 'kotlin/**', 'DebugProbesKt.bin']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach {
+            outputFileName = "J3NSONTOP-${variant.versionName}-${variant.buildType.name}.apk"
+        }
+    }
+}
+
+/*  No dependencies on purpose.
+ *  v1 pulled in androidx.appcompat just for AppCompatActivity + the back
+ *  dispatcher, which cost ~3 MB of APK and dragged the Kotlin stdlib along
+ *  (the old "Duplicate class kotlin.*" fight). This app is one WebView, so it
+ *  now runs on the framework classes alone: ~150 KB, zero transitive deps and
+ *  nothing left to collide.
+ */
+dependencies { }
