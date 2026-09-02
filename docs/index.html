@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="J3NSONTOP INDUSTRIES v3.0 - an offline, on-device reverse-engineering toolkit for Android & iOS: APK lab, native ImGui layer, tamper detector, VR compatibility. Zero network.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="J3NSONTOP INDUSTRIES">
+<meta property="og:description" content="J3NSONTOP INDUSTRIES v3.0 - an offline, on-device reverse-engineering toolkit for Android & iOS: APK lab, native ImGui layer, tamper detector, VR compatibility. Zero network.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%E2%9A%A1</text></svg>">
+<title>J3NSONTOP INDUSTRIES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  /* ---- committed dark "terminal workshop" world; painted explicitly ---- */
+  :root{
+    --ink:#05090a;
+    --ink-2:#080e0d;
+    --panel:#0b1311;
+    --panel-2:#0e1a16;
+    --line:rgba(124,255,64,.15);
+    --line-2:rgba(124,255,64,.34);
+    --phosphor:#7CFF00;      /* signature accent */
+    --phosphor-dim:#57b81a;
+    --amber:#ffb02e;         /* highlight / armed state */
+    --cyan:#4fe3c6;          /* secondary signal / links */
+    --text:#d8e7d3;
+    --fog:#8ba093;
+    --fog-2:#5d7067;
+    --danger:#ff5a52;
+    --maxw:1060px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--ink);color:var(--text);
+    font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* faint CRT scanlines + vignette, static (no flicker) */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:60;
+    background:
+      repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px),
+      radial-gradient(120% 90% at 50% -10%,transparent 55%,rgba(0,0,0,.55) 100%);
+    mix-blend-mode:multiply;opacity:.5;
+  }
+  a{color:var(--cyan);text-decoration:none}
+  a:hover{color:var(--phosphor)}
+  :focus-visible{outline:2px solid var(--phosphor);outline-offset:3px}
+  h1,h2,h3{font-family:"Chakra Petch",sans-serif;line-height:1.05;text-wrap:balance;margin:0}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .eyebrow{
+    font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(--phosphor-dim);
+    display:flex;align-items:center;gap:.7em;font-weight:500;
+  }
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--line-2)}
+
+  /* ---- section framing ---- */
+  section{padding:clamp(56px,9vw,104px) 0;position:relative}
+  .band{background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .sec-head{display:flex;flex-direction:column;gap:14px;margin-bottom:44px}
+  .sec-head h2{font-size:clamp(1.55rem,3.4vw,2.35rem);font-weight:600;letter-spacing:-.01em}
+  .sec-head p{margin:0;color:var(--fog);max-width:60ch}
+
+  /* ---- panel with corner ticks ---- */
+  .panel{position:relative;background:
+      linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);padding:26px}
+  .panel::before,.panel::after{content:"";position:absolute;width:9px;height:9px;border:1px solid var(--line-2)}
+  .panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+  .panel::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+
+  /* ---- HERO ---- */
+  .hero{padding-top:clamp(40px,7vw,72px);padding-bottom:clamp(48px,7vw,80px)}
+  .hero-inner{position:relative;border:1px solid var(--line);background:
+      radial-gradient(90% 130% at 15% 0%,rgba(124,255,64,.07),transparent 60%),
+      linear-gradient(180deg,var(--panel-2),var(--ink));
+    padding:clamp(26px,4vw,46px)}
+  .hero-inner::before,.hero-inner::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--phosphor-dim)}
+  .hero-inner::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+  .hero-inner::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+  .boot{margin:0 0 26px;font-size:.82rem;color:var(--phosphor);white-space:pre-wrap;min-height:8.4em}
+  .boot .ok{color:var(--phosphor)}
+  .boot .armed{color:var(--amber)}
+  .boot .dim{color:var(--fog-2)}
+  .boot .cur{display:inline-block;width:.6em;height:1.05em;vertical-align:-.18em;background:var(--phosphor);animation:blink 1.05s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .wordmark{font-size:clamp(2.3rem,7.4vw,5.1rem);font-weight:700;letter-spacing:-.02em;line-height:.94}
+  .wordmark .t2{color:var(--phosphor)}
+  .tagline{margin:18px 0 0;font-size:clamp(1rem,2vw,1.2rem);color:var(--text);max-width:54ch}
+  .tagline b{color:var(--amber);font-weight:500}
+  .badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .chip{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--fog);
+    border:1px solid var(--line);padding:6px 11px;background:rgba(124,255,64,.03)}
+  .chip b{color:var(--phosphor);font-weight:700}
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+  .btn{font-family:"Chakra Petch",sans-serif;font-weight:600;font-size:.94rem;letter-spacing:.02em;
+    padding:13px 22px;border:1px solid var(--line-2);color:var(--text);background:var(--panel);
+    display:inline-flex;align-items:center;gap:.6em;transition:.16s;cursor:pointer}
+  .btn:hover{border-color:var(--phosphor);color:var(--phosphor);box-shadow:0 0 0 1px var(--phosphor),0 0 26px rgba(124,255,64,.22);transform:translateY(-1px)}
+  .btn.primary{background:var(--phosphor);color:#05140a;border-color:var(--phosphor)}
+  .btn.primary:hover{color:#05140a;box-shadow:0 0 30px rgba(124,255,64,.4);background:#96ff30}
+  .btn .arw{font-size:1.05em;opacity:.8}
+
+  /* ---- stat strip ---- */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid var(--line);margin-top:34px}
+  .stat{padding:18px 16px;border-right:1px solid var(--line)}
+  .stat:last-child{border-right:0}
+  .stat .n{font-family:"Chakra Petch",sans-serif;font-size:1.9rem;font-weight:700;color:var(--phosphor);font-variant-numeric:tabular-nums;line-height:1}
+  .stat .l{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--fog);margin-top:7px}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(2){border-right:0}.stat{border-bottom:1px solid var(--line)}.stat:nth-last-child(-n+1){border-bottom:0}}
+
+  /* ---- modules grid ---- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px}
+  .mod{display:flex;flex-direction:column;gap:10px;transition:.16s}
+  .mod:hover{border-color:var(--line-2);transform:translateY(-2px)}
+  .mod .idx{font-size:.68rem;letter-spacing:.14em;color:var(--phosphor-dim);text-transform:uppercase;
+    display:flex;justify-content:space-between}
+  .mod .idx .tag{color:var(--fog-2)}
+  .mod h3{font-family:"Chakra Petch",sans-serif;font-size:1.18rem;font-weight:600;color:var(--text)}
+  .mod p{margin:0;font-size:.87rem;color:var(--fog);line-height:1.62}
+  .mod .k{color:var(--cyan)}
+
+  /* ---- native / vr split ---- */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.split{grid-template-columns:1fr}}
+  .split h3{font-family:"Chakra Petch",sans-serif;font-weight:600;font-size:1.3rem;margin-bottom:8px}
+  .split .lead{color:var(--phosphor-dim);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px}
+  .split p{color:var(--fog);font-size:.9rem;margin:0 0 14px}
+  .abis{display:flex;flex-wrap:wrap;gap:8px}
+  .abis span{font-size:.72rem;color:var(--text);border:1px solid var(--line);padding:5px 9px;background:rgba(79,227,198,.04)}
+
+  /* ---- downloads manifest ---- */
+  .manifest{border:1px solid var(--line);overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:640px}
+  thead th{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--phosphor-dim);
+    text-align:left;padding:14px 18px;border-bottom:1px solid var(--line);font-weight:500;background:var(--ink-2)}
+  tbody td{padding:16px 18px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:.86rem}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:rgba(124,255,64,.03)}
+  .file{font-weight:500;color:var(--text)}
+  .plat{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--fog)}
+  .sz{font-variant-numeric:tabular-nums;color:var(--fog);white-space:nowrap}
+  .sha{font-size:.72rem;color:var(--fog-2);white-space:nowrap}
+  .get{font-family:"Chakra Petch",sans-serif;font-weight:600;font-size:.8rem;letter-spacing:.06em;
+    border:1px solid var(--line-2);padding:8px 14px;color:var(--phosphor);white-space:nowrap;transition:.15s;display:inline-block}
+  .get:hover{background:var(--phosphor);color:#05140a}
+  .aux{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px;font-size:.82rem;color:var(--fog)}
+  .aux a{border-bottom:1px solid var(--line-2);padding-bottom:1px}
+
+  /* ---- timeline ---- */
+  .tl{display:flex;flex-direction:column;gap:0;border-left:1px solid var(--line-2);margin-left:8px}
+  .rel{position:relative;padding:0 0 40px 30px}
+  .rel:last-child{padding-bottom:0}
+  .rel::before{content:"";position:absolute;left:-5px;top:5px;width:9px;height:9px;background:var(--ink);border:1px solid var(--fog)}
+  .rel.now::before{background:var(--phosphor);border-color:var(--phosphor);box-shadow:0 0 0 4px rgba(124,255,64,.16),0 0 18px rgba(124,255,64,.5)}
+  .rel .ver{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+  .rel .vn{font-family:"Chakra Petch",sans-serif;font-size:1.35rem;font-weight:700;color:var(--text)}
+  .rel.now .vn{color:var(--phosphor)}
+  .rel .date{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fog);font-variant-numeric:tabular-nums}
+  .rel .live{font-size:.62rem;letter-spacing:.18em;color:#05140a;background:var(--phosphor);padding:3px 8px;text-transform:uppercase;font-weight:700}
+  .rel ul{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+  .rel li{font-size:.87rem;color:var(--fog);padding-left:18px;position:relative}
+  .rel li::before{content:"+";position:absolute;left:0;color:var(--phosphor-dim)}
+
+  /* ---- footer / ethos ---- */
+  .ethos{text-align:center;max-width:62ch;margin:0 auto}
+  .ethos .big{font-family:"Chakra Petch",sans-serif;font-size:clamp(1.4rem,3.4vw,2.1rem);font-weight:600;color:var(--text);margin-bottom:16px}
+  .ethos .big b{color:var(--phosphor)}
+  .ethos p{color:var(--fog);font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:34px 0 60px}
+  .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center;font-size:.76rem;color:var(--fog-2)}
+  .foot .mono{letter-spacing:.06em}
+  .foot a{color:var(--fog)}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-inner">
+      <pre class="boot" id="boot" aria-hidden="true">&gt; j3nsontop.industries — cold boot
+&gt; mounting arsenal ................. <span class="ok">OK</span>
+&gt; toolbox: 20 offline units ........ <span class="ok">OK</span>
+&gt; apk lab: decompiler + signer ..... <span class="ok">OK</span>
+&gt; integrity: tamper scan .......... <span class="armed">ARMED</span>
+&gt; build <span class="ok">3.0</span> — <span class="dim">2026-09-02</span></pre>
+
+      <h1 class="wordmark">J3NSONTOP<br><span class="t2">INDUSTRIES</span></h1>
+      <p class="tagline">An offline reverse-engineering arsenal for Android &amp; VR — an on-device APK lab, a native ImGui tooling layer, and a tamper detector. <b>Zero network. It cannot phone home.</b></p>
+
+      <div class="badges">
+        <span class="chip">version <b>3.0</b></span>
+        <span class="chip">released <b>2026-09-02</b></span>
+        <span class="chip"><b>0</b> permissions</span>
+        <span class="chip">android <b>+</b> ios</span>
+      </div>
+
+      <div class="cta-row">
+        <a class="btn primary" href="https://files.catbox.moe/xod042.apk" target="_blank" rel="noopener">Download for Android <span class="arw">↓</span></a>
+        <a class="btn" href="#downloads">Get the iOS build <span class="arw">→</span></a>
+        <a class="btn" href="https://github.com/jenslazar1-sketch/j3nsontop-industries" target="_blank" rel="noopener">Source <span class="arw">↗</span></a>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">6</div><div class="l">Modules</div></div>
+      <div class="stat"><div class="n">20</div><div class="l">Offline tools</div></div>
+      <div class="stat"><div class="n">0</div><div class="l">Permissions</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">Native ABIs</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">Platforms</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== MODULES ===================== -->
+<section class="band" id="modules">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">// 01 · the console</span>
+      <h2>Six modules, one offline binary</h2>
+      <p>Every engine ships inside the package and runs on-device — parsing, hashing and rebuilding without ever opening a socket.</p>
+    </div>
+    <div class="grid">
+      <div class="panel mod">
+        <div class="idx"><span>ARSENAL</span><span class="tag">/00</span></div>
+        <h3>Arsenal</h3>
+        <p>The launch grid — sites, builds and crew, bundled so the whole operation opens from one cold-boot screen.</p>
+      </div>
+      <div class="panel mod">
+        <div class="idx"><span>TOOLBOX</span><span class="tag">/01</span></div>
+        <h3>Toolbox</h3>
+        <p><span class="k">20 offline units</span> — hashing, encoding, ciphers, keys and fingerprints, all through <span class="k">crypto.subtle</span>, none of it leaving the device.</p>
+      </div>
+      <div class="panel mod">
+        <div class="idx"><span>APK LAB</span><span class="tag">/02</span></div>
+        <h3>APK Lab</h3>
+        <p>Open any <span class="k">.apk / .aab / .zip</span> on the phone: decode binary <span class="k">AndroidManifest</span>, resolve <span class="k">resources.arsc</span>, disassemble every dex to smali, edit and repack — with alignment intact.</p>
+      </div>
+      <div class="panel mod">
+        <div class="idx"><span>INTEGRITY</span><span class="tag">/03</span></div>
+        <h3>Integrity</h3>
+        <p>The tamper detector. Reads the signing cert and schemes, cross-references loaded libs, and flags repacks, debug keys and injected mods — <span class="k">defensive by design</span>.</p>
+      </div>
+      <div class="panel mod">
+        <div class="idx"><span>SCANNER</span><span class="tag">/04</span></div>
+        <h3>Scanner</h3>
+        <p>An on-device sweep of what's installed — packages, signers and native libs surfaced for inspection. <span class="k">Android only.</span></p>
+      </div>
+      <div class="panel mod">
+        <div class="idx"><span>INTEL</span><span class="tag">/05</span></div>
+        <h3>Intel</h3>
+        <p>Device facts and build telemetry — the ground truth the rest of the console reasons about, adapting per platform.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== NATIVE + VR ===================== -->
+<section id="native">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">// 02 · beneath the webview</span>
+      <h2>A native layer of its own</h2>
+      <p>Where the JS engines stop, C++ takes over — a Dear ImGui surface compiled per ABI, and a VR-compatibility pass that gets headset games running on a flat screen.</p>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <div class="lead">native // libj3prefab.so</div>
+        <h3>The prefab &amp; movement panel</h3>
+        <p>A drop-in Dear ImGui (1.92, GLES3) library: a prefab spawner and a touch flight-stick + look-pad, wired to your <em>own</em> game through a host callback. It owns no game state and hooks nothing — a modding SDK you compile in, not an injector.</p>
+        <div class="abis"><span>arm64-v8a</span><span>armeabi-v7a</span><span>x86_64</span></div>
+      </div>
+      <div class="panel">
+        <div class="lead">compat // de-vr</div>
+        <h3>Play VR APKs on a phone</h3>
+        <p>Analyses a VR build across the four blockers — ABI, install gates, runtime and input — then patches the ones that keep an OpenXR/VrApi title from launching on a flat device or emulator, so you can actually run it.</p>
+        <div class="abis"><span>OpenXR</span><span>VrApi</span><span>flat-screen</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DOWNLOADS ===================== -->
+<section class="band" id="downloads">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">// 03 · get it</span>
+      <h2>Download manifest</h2>
+      <p>Release 3.0. The Android APK is signed and installs straight away; the iOS build compiles on a cloud Mac from source — no Mac of your own required.</p>
+    </div>
+    <div class="manifest">
+      <table>
+        <thead>
+          <tr><th>Artifact</th><th>Platform</th><th>Size</th><th>SHA-256</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="file">J3NSONTOP-3.0.apk<br><span class="plat">signed release</span></td>
+            <td class="plat">Android 7+</td>
+            <td class="sz">2.46 MB</td>
+            <td class="sha">83a99b18…0daf8c</td>
+            <td><a class="get" href="https://files.catbox.moe/xod042.apk" target="_blank" rel="noopener">Download ↓</a></td>
+          </tr>
+          <tr>
+            <td class="file">J3NSONTOP-3.0-debug.apk<br><span class="plat">debug build</span></td>
+            <td class="plat">Android 7+</td>
+            <td class="sz">2.87 MB</td>
+            <td class="sha">30c11ffe…01425c</td>
+            <td><a class="get" href="https://files.catbox.moe/fpj9tw.apk" target="_blank" rel="noopener">Download ↓</a></td>
+          </tr>
+          <tr>
+            <td class="file">libj3prefab-3.1.zip<br><span class="plat">native lib · 3 ABIs</span></td>
+            <td class="plat">Android .so</td>
+            <td class="sz">848 KB</td>
+            <td class="sha">—</td>
+            <td><a class="get" href="https://files.catbox.moe/lm17wz.zip" target="_blank" rel="noopener">Download ↓</a></td>
+          </tr>
+          <tr>
+            <td class="file">J3NSONTOP-unsigned.ipa<br><span class="plat">built on demand via CI</span></td>
+            <td class="plat">iOS 14+</td>
+            <td class="sz">~165 KB</td>
+            <td class="sha">GitHub Actions</td>
+            <td><a class="get" href="https://github.com/jenslazar1-sketch/j3nsontop-industries/actions/workflows/ios.yml" target="_blank" rel="noopener">Build ↗</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="aux">
+      <span>iOS install: sideload the <code>.ipa</code> with <b>AltStore / SideStore / Sideloadly</b> — re-signs with your own free Apple ID.</span>
+      <a href="https://drive.google.com/drive/folders/1DjJN0nYo9hbRurZj5KdKgrygFIy2A9Db" target="_blank" rel="noopener">Drive mirror ↗</a>
+      <a href="https://github.com/jenslazar1-sketch/j3nsontop-industries" target="_blank" rel="noopener">Full source ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CHANGELOG ===================== -->
+<section id="changelog">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">// 04 · since when</span>
+      <h2>Version history</h2>
+      <p>From a single-screen launcher to a native, cross-platform toolkit — three releases across eleven days.</p>
+    </div>
+    <div class="tl">
+      <div class="rel now">
+        <div class="ver"><span class="vn">v3.0</span><span class="date">2026-09-02</span><span class="live">Current</span></div>
+        <ul>
+          <li>Native <span style="color:var(--cyan)">libj3prefab.so</span> — Dear ImGui prefab spawner + touch movement panel, per ABI</li>
+          <li>Integrity module: repack / debug-key / injected-mod tamper detector</li>
+          <li>VR compatibility analysis + de-VR patching for flat-screen play</li>
+          <li>On-device app scanner and expanded 20-tool toolbox</li>
+          <li>iOS build — WKWebView host, one-tap <span style="color:var(--cyan)">.ipa</span> via GitHub Actions</li>
+        </ul>
+      </div>
+      <div class="rel">
+        <div class="ver"><span class="vn">v2.0</span><span class="date">2026-08 · late</span></div>
+        <ul>
+          <li>Full multi-tool rewrite of the single-page app</li>
+          <li>On-device APK decompiler / recompiler with sign + verify</li>
+          <li>Byte-accurate zip, AXML, dex/smali and certificate engines</li>
+        </ul>
+      </div>
+      <div class="rel">
+        <div class="ver"><span class="vn">v1.0</span><span class="date">2026-08-23</span></div>
+        <ul>
+          <li>First Android release — the WebView arsenal and cold-boot intro</li>
+          <li>Everything bundled offline, no INTERNET permission from day one</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ETHOS / FOOTER ===================== -->
+<section class="band">
+  <div class="wrap">
+    <div class="ethos">
+      <div class="big">No <b>INTERNET</b> permission. By design.</div>
+      <p>Every byte ships inside the package and the toolbox runs entirely on-device — the only permission it holds is <code>VIBRATE</code>. Real links are handed to the system browser through an intent that needs no permission at all. The result is a tool that literally cannot phone home. Built for tinkering, inspection and defense — entertainment and against-the-bad-guys use only.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span class="mono">J3NSONTOP INDUSTRIES · build 3.0 · 2026-09-02</span>
+    <span class="mono">Dear ImGui (MIT) · zlib · WebKit — offline, on-device</span>
+    <span><a href="https://github.com/jenslazar1-sketch/j3nsontop-industries" target="_blank" rel="noopener">github ↗</a></span>
+  </div>
+</footer>
+
+<script>
+  // Boot-sequence type-on: enhancement only. The <pre> already holds the final
+  // text, so with no JS or reduced motion the reader still sees everything.
+  (function(){
+    var pre = document.getElementById('boot');
+    if(!pre) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce) return;
+    var full = pre.innerHTML;
+    // type character by character while respecting the embedded <span> tags
+    var tokens = full.match(/<[^>]+>|&[^;]+;|[\s\S]/g) || [];
+    pre.innerHTML = '';
+    pre.style.minHeight = pre.style.minHeight || '8.4em';
+    var cursor = document.createElement('span'); cursor.className='cur';
+    pre.appendChild(cursor);
+    var i = 0, buf = '';
+    function step(){
+      if(i >= tokens.length){ cursor.remove(); return; }
+      buf += tokens[i++];
+      pre.innerHTML = buf;
+      pre.appendChild(cursor);
+      // faster on plain chars, a beat on line breaks
+      var last = tokens[i-1];
+      var d = last === '\n' ? 90 : (last.length>1 ? 4 : 12);
+      setTimeout(step, d);
+    }
+    step();
+  })();
+</script>
+</body>
+</html>
